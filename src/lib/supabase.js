@@ -111,7 +111,7 @@ export async function submitTestResults({ name, roll_no, class_name, answers, ti
 
   if (isConfigured && supabase) {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('submissions')
         .insert([
           {
@@ -121,12 +121,10 @@ export async function submitTestResults({ name, roll_no, class_name, answers, ti
             answers: answers || {},
             time_taken_seconds: Math.max(0, time_taken_seconds || 0),
           }
-        ])
-        .select()
-        .single();
+        ]);
 
       if (error) {
-        // Postgres 23505 = unique_violation
+        // Postgres 23505 = unique_violation (duplicate roll number)
         const isDuplicate =
           error.code === '23505' ||
           error.message?.toLowerCase().includes('duplicate') ||
@@ -142,7 +140,7 @@ export async function submitTestResults({ name, roll_no, class_name, answers, ti
         };
       }
 
-      return { success: true, data };
+      return { success: true };
     } catch (err) {
       return {
         success: false,
